@@ -4,8 +4,8 @@ import requests
 from bs4 import BeautifulSoup as bs
 from urllib.request import urlopen as uReq
 import logging
+import pymongo
 logging.basicConfig(filename="scrapper.log" , level=logging.INFO)
-
 app = Flask(__name__)
 
 @app.route("/", methods = ['GET'])
@@ -72,7 +72,15 @@ def index():
                           "Comment": custComment}
                 reviews.append(mydict)
             logging.info("log my final result {}".format(reviews))
-            return render_template('result.html', reviews=reviews[0:(len(reviews)-1)])
+            client = pymongo.MongoClient("mongodb+srv://viraj123:viraj123@cluster0.yxb37a4.mongodb.net/?retryWrites=true&w=majority")
+            db=client['review_scrap']
+            review_coll=db['review_data']
+            review_coll.insert_many(reviews)
+
+            
+            return render_template('result.html', reviews=reviews)
+            
+
         except Exception as e:
             logging.info(e)
             return 'something is wrong'
@@ -83,4 +91,4 @@ def index():
 
 
 if __name__=="__main__":
-    app.run(host="0.0.0.0")
+    app.run(host="0.0.0.0",port=5002)
